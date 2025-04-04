@@ -1,0 +1,146 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class TicTacToeGUI {
+    private JFrame frame;
+    private JButton[][] buttons;
+    private char[][] board;
+    private char currentPlayer;
+    private boolean gameWon;
+    private int moves;
+    private boolean gameStarted;
+
+    public TicTacToeGUI() {
+        frame = new JFrame("Tic-Tac-Toe");
+        frame.setSize(400, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        JPanel boardPanel = new JPanel();
+        boardPanel.setLayout(new GridLayout(3, 3));
+
+        buttons = new JButton[3][3];
+        board = new char[3][3];
+        currentPlayer = 'X';
+        gameWon = false;
+        moves = 0;
+        gameStarted = false;
+
+        initializeBoard(boardPanel);
+        frame.add(boardPanel, BorderLayout.CENTER);
+
+        JPanel controlPanel = new JPanel();
+        JButton startButton = new JButton("Start Game");
+        JButton quitButton = new JButton("Quit Game");
+
+        startButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startGame();
+            }
+        });
+
+        quitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        controlPanel.add(startButton);
+        controlPanel.add(quitButton);
+        frame.add(controlPanel, BorderLayout.SOUTH);
+
+        JTextArea instructions = new JTextArea("Welcome to Tic-Tac-Toe!\n" +
+                "Click 'Start Game' to begin.\n" +
+                "Player X goes first.\n" +
+                "Click on an empty cell to make your move.\n" +
+                "The first player to get three in a row wins!\n" +
+                "Have fun!");
+        instructions.setEditable(false);
+        frame.add(instructions, BorderLayout.NORTH);
+
+        frame.setVisible(true);
+    }
+
+    private void initializeBoard(JPanel boardPanel) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                buttons[row][col] = new JButton();
+                buttons[row][col].setFont(new Font("Arial", Font.PLAIN, 60));
+                buttons[row][col].setBackground(Color.WHITE);
+                boardPanel.add(buttons[row][col]);
+                final int r = row;
+                final int c = col;
+                buttons[row][col].addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (gameStarted && !gameWon && board[r][c] == ' ') {
+                            board[r][c] = currentPlayer;
+                            buttons[r][c].setText(String.valueOf(currentPlayer));
+                            buttons[r][c].setEnabled(false);
+                            moves++;
+                            gameWon = checkWin(board, currentPlayer);
+                            if (!gameWon) {
+                                currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+                            }
+                        }
+                        if (gameWon || moves == 9) {
+                            displayResult();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    public void startGame() {
+        if (!gameStarted) {
+            gameStarted = true;
+            currentPlayer = 'X';
+            moves = 0;
+            gameWon = false;
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    board[row][col] = ' ';
+                    buttons[row][col].setText("");
+                    buttons[row][col].setEnabled(true);
+                }
+            }
+        }
+    }
+
+    public void displayResult() {
+        gameStarted = false;
+        if (gameWon) {
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer + " wins!");
+        } else {
+            JOptionPane.showMessageDialog(null, "It's a draw!");
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new TicTacToeGUI());
+    }
+
+    public static boolean checkWin(char[][] board, char player) {
+        // Check rows, columns, and diagonals for a win
+        for (int i = 0; i < 3; i++) {
+            if (board[i][0] == player && board[i][1] == player && board[i][2] == player) {
+                return true; // Horizontal win
+            }
+            if (board[0][i] == player && board[1][i] == player && board[2][i] == player) {
+                return true; // Vertical win
+            }
+        }
+        if (board[0][0] == player && board[1][1] == player && board[2][2] == player) {
+            return true; // Diagonal win (top-left to bottom-right)
+        }
+        if (board[0][2] == player && board[1][1] == player && board[2][0] == player) {
+            return true; // Diagonal win (top-right to bottom-left)
+        }
+        return false;
+    }
+}
